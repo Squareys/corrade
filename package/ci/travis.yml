@@ -1,17 +1,26 @@
 # kate: indent-width 2;
 
-language: cpp
-
 matrix:
   include:
-  - os: linux
+  - language: cpp
+    os: linux
     compiler: gcc
     env: TARGET=desktop
-  - os: osx
+  - language: cpp
+    os: osx
     compiler: clang
     env: TARGET=desktop
-  - os: osx
+  - language: cpp
+    os: osx
     env: TARGET=ios-simulator
+  - language: android
+    os: linux
+    env: TARGET=android
+    android:
+      components:
+      - build-tools-19.0.0
+      - android-19
+      - sys-img-armeabi-v7a-android-19
 
 addons:
   apt:
@@ -33,14 +42,16 @@ notifications:
 install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export CXX=g++-4.7; fi
 # so the directory tests pass (and then some workaround for crazy filesystem issues)
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then mkdir -p ~/.config/autostart; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then mkdir -p ~/.local; fi
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then export CXXFLAGS=-DTRAVIS_CI_HAS_CRAZY_FILESYSTEM_ON_LINUX; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop" ]; then mkdir -p ~/.config/autostart; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop" ]; then mkdir -p ~/.local; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop" ]; then export CXXFLAGS=-DTRAVIS_CI_HAS_CRAZY_FILESYSTEM_ON_LINUX; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "android" ]; then wget -nc http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin && chmod +x android-*.bin && ./android-*.bin -y | grep -v Extracting; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "ios-simulator" ]; then gem install xcpretty; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "ios-simulator" ]; then brew update && brew upgrade cmake; fi
 
 script:
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./package/ci/travis-desktop.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "desktop" ]; then ./package/ci/travis-desktop.sh; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TARGET" == "android" ]; then ./package/ci/travis-android-arm.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "desktop" ]; then ./package/ci/travis-desktop.sh; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$TARGET" == "ios-simulator" ]; then ./package/ci/travis-ios-simulator.sh; fi
 # Travis somehow is not able to gather all output, try to force it using this
