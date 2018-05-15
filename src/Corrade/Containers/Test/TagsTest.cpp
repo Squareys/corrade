@@ -28,7 +28,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct TagsTest: TestSuite::Tester {
+struct TagsTest : TestSuite::Tester {
     explicit TagsTest();
 
     void noDefaultConstructor();

@@ -28,7 +28,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct ArrayTest: TestSuite::Tester {
+struct ArrayTest : TestSuite::Tester {
     explicit ArrayTest();
 
     void constructEmpty();
@@ -163,12 +163,12 @@ void ArrayTest::constructValueInit() {
 }
 
 namespace {
-    struct Foo {
-        static int constructorCallCount;
-        Foo() { ++constructorCallCount; }
-    };
+struct Foo {
+    static int constructorCallCount;
+    Foo() { ++constructorCallCount; }
+};
 
-    int Foo::constructorCallCount = 0;
+int Foo::constructorCallCount = 0;
 }
 
 void ArrayTest::constructNoInit() {
@@ -269,9 +269,9 @@ void ArrayTest::convertPointer() {
     CORRADE_VERIFY((std::is_convertible<Array&, int*>::value));
     CORRADE_VERIFY((std::is_convertible<const Array&, const int*>::value));
     {
-        #ifdef CORRADE_GCC47_COMPATIBILITY
+#ifdef CORRADE_GCC47_COMPATIBILITY
         CORRADE_EXPECT_FAIL("Rvalue references for *this are not supported in GCC < 4.8.1.");
-        #endif
+#endif
         CORRADE_VERIFY(!(std::is_convertible<Array, int*>::value));
         CORRADE_VERIFY(!(std::is_convertible<Array&&, int*>::value));
     }
@@ -290,8 +290,8 @@ void ArrayTest::convertPointer() {
 void ArrayTest::convertView() {
     Array a(5);
     const Array ca(5);
-    Containers::Array<const int> ac{a.data(), a.size(), [](const int*, std::size_t){}};
-    const Containers::Array<const int> cac{a.data(), a.size(), [](const int*, std::size_t){}};
+    Containers::Array<const int> ac{a.data(), a.size(), [](const int*, std::size_t) {}};
+    const Containers::Array<const int> cac{a.data(), a.size(), [](const int*, std::size_t) {}};
 
     {
         const ArrayView b = a;
@@ -306,7 +306,8 @@ void ArrayTest::convertView() {
         CORRADE_COMPARE(cb.size(), 5);
         CORRADE_COMPARE(bc.size(), 5);
         CORRADE_COMPARE(cbc.size(), 5);
-    } {
+    }
+    {
         const auto b = arrayView(a);
         const auto cb = arrayView(ca);
         const auto bc = arrayView(ac);
@@ -327,8 +328,10 @@ void ArrayTest::convertView() {
 }
 
 void ArrayTest::convertViewDerived() {
-    struct A { int i; };
-    struct B: A {};
+    struct A {
+        int i;
+    };
+    struct B : A {};
 
     /* Valid use case: constructing Containers::ArrayView<Math::Vector<3, Float>>
        from Containers::ArrayView<Color3> because the data have the same size
@@ -349,8 +352,8 @@ void ArrayTest::convertVoid() {
     VoidArrayView cb = ca;
     CORRADE_VERIFY(b == a);
     CORRADE_VERIFY(cb == ca);
-    CORRADE_COMPARE(b.size(), a.size()*sizeof(int));
-    CORRADE_COMPARE(cb.size(), ca.size()*sizeof(int));
+    CORRADE_COMPARE(b.size(), a.size() * sizeof(int));
+    CORRADE_COMPARE(cb.size(), ca.size() * sizeof(int));
 }
 
 void ArrayTest::emptyCheck() {
@@ -369,9 +372,9 @@ void ArrayTest::access() {
         a[i] = i;
 
     CORRADE_COMPARE(a.data(), static_cast<int*>(a));
-    CORRADE_COMPARE(*(a.begin()+2), 2);
+    CORRADE_COMPARE(*(a.begin() + 2), 2);
     CORRADE_COMPARE(a[4], 4);
-    CORRADE_COMPARE(a.end()-a.begin(), a.size());
+    CORRADE_COMPARE(a.end() - a.begin(), a.size());
     CORRADE_COMPARE(a.cbegin(), a.begin());
     CORRADE_COMPARE(a.cend(), a.end());
 
@@ -386,7 +389,7 @@ void ArrayTest::rvalueArrayAccess() {
 
 void ArrayTest::rangeBasedFor() {
     Array a(5);
-    for(auto& i: a)
+    for(auto& i : a)
         i = 3;
 
     CORRADE_COMPARE(a[0], 3);
@@ -397,7 +400,7 @@ void ArrayTest::rangeBasedFor() {
 
     /* To verify the constant begin()/end() accessors */
     const Array& ca = a;
-    for(auto&& i: ca)
+    for(auto&& i : ca)
         CORRADE_COMPARE(i, 3);
 }
 
@@ -474,7 +477,7 @@ void ArrayTest::defaultDeleter() {
 }
 
 namespace {
-    int CustomDeleterDeletedCount = 0;
+int CustomDeleterDeletedCount = 0;
 }
 
 void ArrayTest::customDeleter() {
@@ -491,11 +494,11 @@ void ArrayTest::customDeleter() {
 }
 
 namespace {
-    struct CustomDeleter {
-        CustomDeleter(int& deletedCountOutput): deletedCount{deletedCountOutput} {}
-        void operator()(int*, std::size_t size) { deletedCount = size; }
-        int& deletedCount;
-    };
+struct CustomDeleter {
+    CustomDeleter(int& deletedCountOutput) : deletedCount{deletedCountOutput} {}
+    void operator()(int*, std::size_t size) { deletedCount = size; }
+    int& deletedCount;
+};
 }
 
 void ArrayTest::customDeleterType() {
@@ -528,8 +531,8 @@ void ArrayTest::customDeleterTypeConstruct() {
 void ArrayTest::cast() {
     Containers::Array<std::uint32_t> a{6};
     const Containers::Array<std::uint32_t> ca{6};
-    Containers::Array<const std::uint32_t> ac{a.data(), a.size(), [](const std::uint32_t*, std::size_t){}};
-    const Containers::Array<const std::uint32_t> cac{a.data(), a.size(), [](const std::uint32_t*, std::size_t){}};
+    Containers::Array<const std::uint32_t> ac{a.data(), a.size(), [](const std::uint32_t*, std::size_t) {}};
+    const Containers::Array<const std::uint32_t> cac{a.data(), a.size(), [](const std::uint32_t*, std::size_t) {}};
 
     auto b = Containers::arrayCast<std::uint64_t>(a);
     auto bc = Containers::arrayCast<const std::uint64_t>(ac);

@@ -220,7 +220,6 @@ building Corrade.
 #define CORRADE_UTILITY_USE_ANSI_COLORS
 #undef CORRADE_UTILITY_USE_ANSI_COLORS
 #endif
-
 }
 
 #endif

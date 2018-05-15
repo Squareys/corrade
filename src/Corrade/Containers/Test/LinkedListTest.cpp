@@ -30,7 +30,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct LinkedListTest: TestSuite::Tester {
+struct LinkedListTest : TestSuite::Tester {
     explicit LinkedListTest();
 
     void listBackReference();
@@ -48,18 +48,18 @@ struct LinkedListTest: TestSuite::Tester {
     void rangeBasedFor();
 };
 
-class Item: public LinkedListItem<Item> {
+class Item : public LinkedListItem<Item> {
     public:
-        Item(Item&& other): LinkedListItem<Item>(std::forward<LinkedListItem<Item>>(other)) {}
+    Item(Item&& other) : LinkedListItem<Item>(std::forward<LinkedListItem<Item>>(other)) {}
 
-        Item& operator=(Item&& other) {
-            LinkedListItem<Item>::operator=(std::forward<LinkedListItem<Item>>(other));
-            return *this;
-        }
+    Item& operator=(Item&& other) {
+        LinkedListItem<Item>::operator=(std::forward<LinkedListItem<Item>>(other));
+        return *this;
+    }
 
-        static int count;
-        Item() { ++count; }
-        ~Item() { --count; }
+    static int count;
+    Item() { ++count; }
+    ~Item() { --count; }
 };
 
 typedef Containers::LinkedList<Item> LinkedList;
@@ -431,12 +431,13 @@ void LinkedListTest::rangeBasedFor() {
 
     {
         std::vector<Item*> items;
-        for(auto&& i: list) items.push_back(&i);
+        for(auto&& i : list) items.push_back(&i);
         CORRADE_COMPARE(items, (std::vector<Item*>{&item, &item2, &item3}));
-    } {
+    }
+    {
         const LinkedList& clist = list;
         std::vector<const Item*> items;
-        for(auto&& i: clist) items.push_back(&i);
+        for(auto&& i : clist) items.push_back(&i);
         CORRADE_COMPARE(items, (std::vector<const Item*>{&item, &item2, &item3}));
     }
 }

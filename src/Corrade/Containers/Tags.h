@@ -40,10 +40,10 @@ are not initialized, others are default-constructed).
 */
 /* Explicit constructor to avoid ambiguous calls when using {} */
 struct DefaultInitT {
-    #ifndef DOXYGEN_GENERATING_OUTPUT
-    struct Init{};
+#ifndef DOXYGEN_GENERATING_OUTPUT
+    struct Init {};
     constexpr explicit DefaultInitT(Init) {}
-    #endif
+#endif
 };
 
 /**
@@ -55,10 +55,10 @@ zeroed out, others are default-constructed).
 */
 /* Explicit constructor to avoid ambiguous calls when using {} */
 struct ValueInitT {
-    #ifndef DOXYGEN_GENERATING_OUTPUT
-    struct Init{};
+#ifndef DOXYGEN_GENERATING_OUTPUT
+    struct Init {};
     constexpr explicit ValueInitT(Init) {}
-    #endif
+#endif
 };
 
 /**
@@ -69,10 +69,10 @@ Used to distinguish construction with no initialization at all.
 */
 /* Explicit constructor to avoid ambiguous calls when using {} */
 struct NoInitT {
-    #ifndef DOXYGEN_GENERATING_OUTPUT
-    struct Init{};
+#ifndef DOXYGEN_GENERATING_OUTPUT
+    struct Init {};
     constexpr explicit NoInitT(Init) {}
-    #endif
+#endif
 };
 
 /**
@@ -83,10 +83,10 @@ Used to distinguish construction with direct initialization.
 */
 /* Explicit constructor to avoid ambiguous calls when using {} */
 struct DirectInitT {
-    #ifndef DOXYGEN_GENERATING_OUTPUT
-    struct Init{};
+#ifndef DOXYGEN_GENERATING_OUTPUT
+    struct Init {};
     constexpr explicit DirectInitT(Init) {}
-    #endif
+#endif
 };
 
 /**
@@ -97,10 +97,10 @@ Used to distinguish construction with in-place initialization.
 */
 /* Explicit constructor to avoid ambiguous calls when using {} */
 struct InPlaceInitT {
-    #ifndef DOXYGEN_GENERATING_OUTPUT
-    struct Init{};
+#ifndef DOXYGEN_GENERATING_OUTPUT
+    struct Init {};
     constexpr explicit InPlaceInitT(Init) {}
-    #endif
+#endif
 };
 
 /**

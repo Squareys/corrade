@@ -30,7 +30,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct EnumSetTest: TestSuite::Tester {
+struct EnumSetTest : TestSuite::Tester {
     explicit EnumSetTest();
 
     void construct();
@@ -48,7 +48,7 @@ struct EnumSetTest: TestSuite::Tester {
 
 namespace {
 
-enum class Feature: int {
+enum class Feature : int {
     Fast = 1 << 0,
     Cheap = 1 << 1,
     Tested = 1 << 2,
@@ -57,12 +57,13 @@ enum class Feature: int {
 
 Utility::Debug& operator<<(Utility::Debug& debug, Feature value) {
     switch(value) {
-        #define _c(value) case Feature::value: return debug << "Feature::" #value;
+#define _c(value) \
+    case Feature::value: return debug << "Feature::" #value;
         _c(Fast)
-        _c(Cheap)
-        _c(Tested)
-        _c(Popular)
-        #undef _c
+            _c(Cheap)
+                _c(Tested)
+                    _c(Popular)
+#undef _c
     }
 
     return debug << "Feature(" << Utility::Debug::nospace << reinterpret_cast<void*>(int(value)) << Utility::Debug::nospace << ")";
@@ -73,13 +74,8 @@ typedef EnumSet<Feature, 15> Features;
 CORRADE_ENUMSET_OPERATORS(Features)
 
 Utility::Debug& operator<<(Utility::Debug& debug, Features value) {
-    return enumSetDebugOutput(debug, value, "Features{}", {
-        Feature::Fast,
-        Feature::Cheap,
-        Feature::Tested,
-        Feature::Popular});
+    return enumSetDebugOutput(debug, value, "Features{}", {Feature::Fast, Feature::Cheap, Feature::Tested, Feature::Popular});
 }
-
 }
 
 EnumSetTest::EnumSetTest() {
@@ -107,24 +103,25 @@ void EnumSetTest::construct() {
 void EnumSetTest::constructNoInit() {
     {
         Features features{Feature::Tested};
-        new(&features)Features{};
+        new(&features) Features{};
         CORRADE_COMPARE(int(features), 0);
-    } {
+    }
+    {
         Features features{Feature::Tested};
-        new(&features)Features{NoInit};
-        #if defined(__GNUC__) && __GNUC__*100 + __GNUC_MINOR__ >= 601 && __OPTIMIZE__
+        new(&features) Features{NoInit};
+#if defined(__GNUC__) && __GNUC__ * 100 + __GNUC_MINOR__ >= 601 && __OPTIMIZE__
         CORRADE_EXPECT_FAIL("GCC 6.1+ misoptimizes and overwrites the value.");
-        #endif
+#endif
         CORRADE_COMPARE(int(features), 4);
     }
 }
 
 void EnumSetTest::operatorOr() {
-    Features features = Feature::Cheap|Feature::Fast;
+    Features features = Feature::Cheap | Feature::Fast;
     CORRADE_COMPARE(int(features), 3);
 
-    CORRADE_COMPARE(int(features|Feature::Tested), 7);
-    CORRADE_COMPARE(int(Feature::Tested|features), 7);
+    CORRADE_COMPARE(int(features | Feature::Tested), 7);
+    CORRADE_COMPARE(int(Feature::Tested | features), 7);
 
     features |= Feature::Tested;
     CORRADE_COMPARE(int(features), 7);
@@ -133,13 +130,13 @@ void EnumSetTest::operatorOr() {
 void EnumSetTest::operatorAnd() {
     CORRADE_COMPARE(int(Feature::Cheap & Feature::Fast), 0);
 
-    Features features = Feature::Popular|Feature::Fast|Feature::Cheap;
+    Features features = Feature::Popular | Feature::Fast | Feature::Cheap;
     CORRADE_COMPARE(int(features & Feature::Popular), 8);
     CORRADE_COMPARE(int(Feature::Popular & features), 8);
 
     CORRADE_COMPARE(int(features & Feature::Tested), 0);
 
-    Features features2 = Feature::Popular|Feature::Fast|Feature::Tested;
+    Features features2 = Feature::Popular | Feature::Fast | Feature::Tested;
     CORRADE_COMPARE(int(features & features2), 9);
 
     features &= features2;
@@ -150,13 +147,13 @@ void EnumSetTest::operatorXor() {
     CORRADE_COMPARE(int(Feature::Cheap ^ Feature::Cheap), 0);
     CORRADE_COMPARE(int(Feature::Cheap ^ Feature::Fast), 3);
 
-    Features features = Feature::Popular|Feature::Fast|Feature::Cheap;
+    Features features = Feature::Popular | Feature::Fast | Feature::Cheap;
     CORRADE_COMPARE(int(features ^ Feature::Tested), 15);
     CORRADE_COMPARE(int(Feature::Tested ^ features), 15);
 
     CORRADE_COMPARE(int(features ^ Feature::Popular), 3);
 
-    Features features2 = Feature::Popular|Feature::Fast|Feature::Tested;
+    Features features2 = Feature::Popular | Feature::Fast | Feature::Tested;
     CORRADE_COMPARE(int(features ^ features2), 6);
 
     features ^= features2;
@@ -166,19 +163,19 @@ void EnumSetTest::operatorXor() {
 void EnumSetTest::operatorBool() {
     CORRADE_COMPARE(!!(Features()), false);
 
-    Features features = Feature::Cheap|Feature::Fast;
+    Features features = Feature::Cheap | Feature::Fast;
     CORRADE_COMPARE(!!(features & Feature::Popular), false);
     CORRADE_COMPARE(!!(features & Feature::Cheap), true);
 }
 
 void EnumSetTest::operatorInverse() {
     CORRADE_COMPARE(int(~Features()), 15);
-    CORRADE_COMPARE(int(~(Feature::Popular|Feature::Cheap)), 5);
+    CORRADE_COMPARE(int(~(Feature::Popular | Feature::Cheap)), 5);
     CORRADE_COMPARE(int(~Feature::Popular), 7);
 }
 
 void EnumSetTest::compare() {
-    Features features = Feature::Popular|Feature::Fast|Feature::Cheap;
+    Features features = Feature::Popular | Feature::Fast | Feature::Cheap;
     CORRADE_VERIFY(features == features);
     CORRADE_VERIFY(!(features != features));
     CORRADE_VERIFY(Feature::Cheap == Features(Feature::Cheap));
@@ -193,14 +190,14 @@ void EnumSetTest::compare() {
     CORRADE_VERIFY(features <= features);
     CORRADE_VERIFY(features >= features);
 
-    CORRADE_VERIFY(features <= (Feature::Popular|Feature::Fast|Feature::Cheap|Feature::Tested));
-    CORRADE_VERIFY(!(features >= (Feature::Popular|Feature::Fast|Feature::Cheap|Feature::Tested)));
+    CORRADE_VERIFY(features <= (Feature::Popular | Feature::Fast | Feature::Cheap | Feature::Tested));
+    CORRADE_VERIFY(!(features >= (Feature::Popular | Feature::Fast | Feature::Cheap | Feature::Tested)));
 }
 
 void EnumSetTest::debug() {
     std::stringstream out;
 
-    Utility::Debug{&out} << Features{} << (Feature::Fast|Feature::Cheap) << (Feature(0xdead000)|Feature::Popular);
+    Utility::Debug{&out} << Features{} << (Feature::Fast | Feature::Cheap) << (Feature(0xdead000) | Feature::Popular);
     CORRADE_COMPARE(out.str(), "Features{} Feature::Fast|Feature::Cheap Feature::Popular|Feature(0xdead000)\n");
 }
 

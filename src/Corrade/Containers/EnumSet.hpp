@@ -81,20 +81,24 @@ Utility::Debug{} << Features{};
 @attention This function assumes that the recognized values have unique bits
     set. The output is undefined if more than one value share the same bit.
 */
-template<class T, typename std::underlying_type<T>::type fullValue> Utility::Debug& enumSetDebugOutput(Utility::Debug& debug, EnumSet<T, fullValue> value, const char* empty, std::initializer_list<T> enums) {
+template<class T, typename std::underlying_type<T>::type fullValue>
+Utility::Debug& enumSetDebugOutput(Utility::Debug& debug, EnumSet<T, fullValue> value, const char* empty, std::initializer_list<T> enums) {
     /* Print the empty value in case there is nothing */
     if(!value) return debug << empty;
 
     /* Print known values, if set, and strip them out of the value */
     bool separate = false;
-    for(const T e: enums) if(value >= e) {
-        if(separate) debug << Utility::Debug::nospace << "|" << Utility::Debug::nospace;
-        else separate = true;
-        debug << e;
+    for(const T e : enums)
+        if(value >= e) {
+            if(separate)
+                debug << Utility::Debug::nospace << "|" << Utility::Debug::nospace;
+            else
+                separate = true;
+            debug << e;
 
-        /* Avoid stripping out the unknown bits by the EnumSet operator~ */
-        value &= T(~typename std::underlying_type<T>::type(e));
-    }
+            /* Avoid stripping out the unknown bits by the EnumSet operator~ */
+            value &= T(~typename std::underlying_type<T>::type(e));
+        }
 
     /* If there are leftover, pass them to the original debug operator and
        expect it will print them as raw value */

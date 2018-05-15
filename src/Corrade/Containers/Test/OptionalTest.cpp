@@ -31,7 +31,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct OptionalTest: TestSuite::Tester {
+struct OptionalTest : TestSuite::Tester {
     explicit OptionalTest();
 
     void nullOptNotDefaultConstructible();
@@ -110,7 +110,8 @@ OptionalTest::OptionalTest() {
               &OptionalTest::moveSetToSet,
 
               &OptionalTest::emplaceNull,
-              &OptionalTest::emplaceSet}, &OptionalTest::resetCounters, &OptionalTest::resetCounters);
+              &OptionalTest::emplaceSet},
+             &OptionalTest::resetCounters, &OptionalTest::resetCounters);
 
     addTests({&OptionalTest::access,
               &OptionalTest::debug,
@@ -126,13 +127,13 @@ struct Copyable {
     static int copied;
     static int moved;
 
-    Copyable(int a) noexcept: a{a} { ++constructed; }
+    Copyable(int a) noexcept : a{a} { ++constructed; }
     ~Copyable() { ++destructed; }
-    Copyable(const Copyable& other) noexcept: a{other.a} {
+    Copyable(const Copyable& other) noexcept : a{other.a} {
         ++constructed;
         ++copied;
     }
-    Copyable(Copyable&& other) noexcept: a{other.a} {
+    Copyable(Copyable&& other) noexcept : a{other.a} {
         ++constructed;
         ++moved;
     }
@@ -160,9 +161,9 @@ struct Movable {
     static int destructed;
     static int moved;
 
-    Movable(int a): a{a} { ++constructed; }
+    Movable(int a) : a{a} { ++constructed; }
     Movable(const Movable&) = delete;
-    Movable(Movable&& other) noexcept: a(other.a) {
+    Movable(Movable&& other) noexcept : a(other.a) {
         ++constructed;
         ++moved;
     }
@@ -190,7 +191,7 @@ struct Immovable {
     Immovable& operator=(const Immovable&) = delete;
     Immovable& operator=(Immovable&&) = delete;
 
-    Immovable(int a): a{a} { ++constructed; }
+    Immovable(int a) : a{a} { ++constructed; }
     ~Immovable() { ++destructed; }
 
     int a;
@@ -203,7 +204,6 @@ void swap(Movable& a, Movable& b) {
     /* Swap these without copying the parent class */
     std::swap(a.a, b.a);
 }
-
 }
 
 void OptionalTest::nullOptNotDefaultConstructible() {

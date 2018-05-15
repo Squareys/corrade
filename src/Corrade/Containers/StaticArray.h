@@ -115,23 +115,24 @@ for(Foo& f: e) new(&f) Foo(index++);
 */
 /* Underscore at the end to avoid conflict with member size(). It's ugly, but
    having count instead of size_ would make the naming horribly inconsistent. */
-template<std::size_t size_, class T> class StaticArray {
+template<std::size_t size_, class T>
+class StaticArray {
     public:
-        enum: std::size_t {
-            Size = size_    /**< Array size */
-        };
-        typedef T Type;     /**< @brief Element type */
+    enum : std::size_t {
+        Size = size_ /**< Array size */
+    };
+    typedef T Type; /**< @brief Element type */
 
-        /**
+    /**
          * @brief Construct default-initialized array
          *
          * Creates array of given size, the contents are default-initialized
          * (i.e. builtin types are not initialized).
          * @see @ref DefaultInit, @ref StaticArray(ValueInitT)
          */
-        explicit StaticArray(DefaultInitT): StaticArray{DefaultInit, std::integral_constant<bool, std::is_pod<T>::value>{}} {}
+    explicit StaticArray(DefaultInitT) : StaticArray{DefaultInit, std::integral_constant<bool, std::is_pod<T>::value>{}} {}
 
-        /**
+    /**
          * @brief Construct value-initialized array
          *
          * Creates array of given size, the contents are value-initialized
@@ -142,9 +143,9 @@ template<std::size_t size_, class T> class StaticArray {
          * them to zero.
          * @see @ref ValueInit, @ref StaticArray(DefaultInitT)
          */
-        explicit StaticArray(ValueInitT): _data{} {}
+    explicit StaticArray(ValueInitT) : _data{} {}
 
-        /**
+    /**
          * @brief Construct the array without initializing its contents
          *
          * Creates array of given size, the contents are *not* initialized.
@@ -156,9 +157,9 @@ template<std::size_t size_, class T> class StaticArray {
          *      of whether they were properly constructed or not.
          * @see @ref NoInit, @ref StaticArray(DirectInitT, Args&&... args)
          */
-        explicit StaticArray(NoInitT) {}
+    explicit StaticArray(NoInitT) {}
 
-        /**
+    /**
          * @brief Construct direct-initialized array
          *
          * Constructs the array using the @ref StaticArray(NoInitT) constructor
@@ -166,70 +167,74 @@ template<std::size_t size_, class T> class StaticArray {
          * @p args.
          * @see @ref StaticArray(InPlaceInitT, Args&&... args)
          */
-        template<class ...Args> explicit StaticArray(DirectInitT, Args&&... args);
+    template<class... Args>
+    explicit StaticArray(DirectInitT, Args&&... args);
 
-        /**
+    /**
          * @brief Construct in-place-initialized array
          *
          * The arguments are forwarded to the array constructor.
          * @see @ref StaticArray(DirectInitT, Args&&... args)
          */
-        template<class ...Args> explicit StaticArray(InPlaceInitT, Args&&... args): _data{std::forward<Args>(args)...} {
-            static_assert(sizeof...(args) == size_, "Containers::StaticArray: wrong number of initializers");
-        }
+    template<class... Args>
+    explicit StaticArray(InPlaceInitT, Args&&... args) : _data{std::forward<Args>(args)...} {
+        static_assert(sizeof...(args) == size_, "Containers::StaticArray: wrong number of initializers");
+    }
 
-        /**
+    /**
          * @brief Construct default-initialized array
          *
          * Alias to @ref StaticArray(DefaultInitT).
          * @see @ref StaticArray(ValueInitT)
          */
-        explicit StaticArray(): StaticArray{DefaultInit} {}
+    explicit StaticArray() : StaticArray{DefaultInit} {}
 
-        /**
+/**
          * @brief Construct in-place-initialized array
          *
          * Alias to @ref StaticArray(InPlaceInitT, Args&&... args).
          * @see @ref StaticArray(DirectInitT, Args&&... args)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class ...Args> explicit StaticArray(Args&&... args);
-        #else
-        template<class First, class ...Next> explicit StaticArray(First&& first, Next&&... next): StaticArray{InPlaceInit, std::forward<First>(first), std::forward<Next>(next)...} {}
-        #endif
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class... Args>
+    explicit StaticArray(Args&&... args);
+#else
+    template<class First, class... Next>
+    explicit StaticArray(First&& first, Next&&... next) : StaticArray{InPlaceInit, std::forward<First>(first), std::forward<Next>(next)...} {}
+#endif
 
-        /** @brief Copying is not allowed */
-        StaticArray(const StaticArray<size_, T>&) = delete;
+    /** @brief Copying is not allowed */
+    StaticArray(const StaticArray<size_, T>&) = delete;
 
-        /** @brief Moving is not allowed */
-        StaticArray(StaticArray<size_, T>&&) = delete;
+    /** @brief Moving is not allowed */
+    StaticArray(StaticArray<size_, T>&&) = delete;
 
-        ~StaticArray();
+    ~StaticArray();
 
-        /** @brief Copying is not allowed */
-        StaticArray<size_, T>& operator=(const StaticArray<size_, T>&) = delete;
+    /** @brief Copying is not allowed */
+    StaticArray<size_, T>& operator=(const StaticArray<size_, T>&) = delete;
 
-        /** @brief Moving is not allowed */
-        StaticArray<size_, T>& operator=(StaticArray<size_, T>&&) = delete;
+    /** @brief Moving is not allowed */
+    StaticArray<size_, T>& operator=(StaticArray<size_, T>&&) = delete;
 
-        /**
+/**
          * @brief Convert to @ref ArrayView
          *
          * Enabled only if @cpp T* @ce is implicitly convertible to @cpp U* @ce.
          * Expects that both types have the same size.
          * @see @ref arrayView(StaticArray<size, T>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class V = typename std::enable_if<!std::is_void<U>::value && std::is_convertible<T*, U*>::value>::type>
-        #endif
-        /*implicit*/ operator ArrayView<U>() noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return {_data, size_};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class V = typename std::enable_if<!std::is_void<U>::value && std::is_convertible<T*, U*>::value>::type>
+#endif
+    /*implicit*/ operator ArrayView<U>() noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return {_data, size_};
+    }
 
-        /**
+/**
          * @brief Convert to const @ref ArrayView
          *
          * Enabled only if @cpp T* @ce or @cpp const T* @ce is implicitly
@@ -237,40 +242,40 @@ template<std::size_t size_, class T> class StaticArray {
          * size.
          * @see @ref arrayView(const StaticArray<size, T>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
-        #endif
-        /*implicit*/ operator ArrayView<const U>() const noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return {_data, size_};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
+#endif
+    /*implicit*/ operator ArrayView<const U>() const noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return {_data, size_};
+    }
 
-        /** @overload */
-        /*implicit*/ operator ArrayView<const void>() const noexcept {
-            /* Yes, the size is properly multiplied by sizeof(T) by the constructor */
-            return {_data, size_};
-        }
+    /** @overload */
+    /*implicit*/ operator ArrayView<const void>() const noexcept {
+        /* Yes, the size is properly multiplied by sizeof(T) by the constructor */
+        return {_data, size_};
+    }
 
-        /**
+/**
          * @brief Convert to @ref StaticArrayView
          *
          * Enabled only if @cpp T* @ce is implicitly convertible to @cpp U* @ce.
          * Expects that both types have the same size.
          * @see @ref staticArrayView(StaticArray<size, T>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value>::type>
-        #endif
-        /*implicit*/ operator StaticArrayView<size_, U>() noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return StaticArrayView<size_, U>{_data};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value>::type>
+#endif
+    /*implicit*/ operator StaticArrayView<size_, U>() noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return StaticArrayView<size_, U>{_data};
+    }
 
-        /**
+/**
          * @brief Convert to const @ref StaticArrayView
          *
          * Enabled only if @cpp T* @ce or @cpp const T* @ce is implicitly
@@ -278,151 +283,159 @@ template<std::size_t size_, class T> class StaticArray {
          * size.
          * @see @ref staticArrayView(const StaticArray<size, T>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
-        #endif
-        /*implicit*/ operator StaticArrayView<size_, const U>() const noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return StaticArrayView<size_, const U>{_data};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class V = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
+#endif
+    /*implicit*/ operator StaticArrayView<size_, const U>() const noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return StaticArrayView<size_, const U>{_data};
+    }
 
-        /* `char* a = Containers::Array<char>(5); a[3] = 5;` would result in
+    /* `char* a = Containers::Array<char>(5); a[3] = 5;` would result in
            instant segfault, disallowing it in the following conversion
            operators */
 
-        /** @brief Conversion to array type */
-        /*implicit*/ operator T*()
-        #ifndef CORRADE_GCC47_COMPATIBILITY
+    /** @brief Conversion to array type */
+    /*implicit*/ operator T*()
+#ifndef CORRADE_GCC47_COMPATIBILITY
         &
-        #endif
-        { return _data; }
+#endif
+    {
+        return _data;
+    }
 
-        /** @overload */
-        /*implicit*/ operator const T*() const
-        #ifndef CORRADE_GCC47_COMPATIBILITY
+    /** @overload */
+    /*implicit*/ operator const T*() const
+#ifndef CORRADE_GCC47_COMPATIBILITY
         &
-        #endif
-        { return _data; }
+#endif
+    {
+        return _data;
+    }
 
-        /** @brief Array data */
-        T* data() { return _data; }
-        const T* data() const { return _data; }             /**< @overload */
+    /** @brief Array data */
+    T* data() { return _data; }
+    const T* data() const { return _data; } /**< @overload */
 
-        /**
+    /**
          * @brief Array size
          *
          * Equivalent to @ref Size.
          */
-        constexpr std::size_t size() const { return size_; }
+    constexpr std::size_t size() const { return size_; }
 
-        /**
+    /**
          * @brief Whether the array is empty
          *
          * Always true (it's not possible to create zero-sized C array).
          */
-        constexpr bool empty() const { return !size_; }
+    constexpr bool empty() const { return !size_; }
 
-        /** @brief Pointer to first element */
-        T* begin() { return _data; }
-        const T* begin() const { return _data; }            /**< @overload */
-        const T* cbegin() const { return _data; }           /**< @overload */
+    /** @brief Pointer to first element */
+    T* begin() { return _data; }
+    const T* begin() const { return _data; } /**< @overload */
+    const T* cbegin() const { return _data; } /**< @overload */
 
-        /** @brief Pointer to (one item after) last element */
-        T* end() { return _data + size_; }
-        const T* end() const { return _data + size_; }      /**< @overload */
-        const T* cend() const { return _data + size_; }     /**< @overload */
+    /** @brief Pointer to (one item after) last element */
+    T* end() { return _data + size_; }
+    const T* end() const { return _data + size_; } /**< @overload */
+    const T* cend() const { return _data + size_; } /**< @overload */
 
-        /**
+    /**
          * @brief Reference to array slice
          *
          * Equivalent to @ref ArrayView::slice().
          */
-        ArrayView<T> slice(T* begin, T* end) {
-            return ArrayView<T>(*this).slice(begin, end);
-        }
-        /** @overload */
-        ArrayView<const T> slice(const T* begin, const T* end) const {
-            return ArrayView<const T>(*this).slice(begin, end);
-        }
-        /** @overload */
-        ArrayView<T> slice(std::size_t begin, std::size_t end) {
-            return slice(_data + begin, _data + end);
-        }
-        /** @overload */
-        ArrayView<const T> slice(std::size_t begin, std::size_t end) const {
-            return slice(_data + begin, _data + end);
-        }
+    ArrayView<T> slice(T* begin, T* end) {
+        return ArrayView<T>(*this).slice(begin, end);
+    }
+    /** @overload */
+    ArrayView<const T> slice(const T* begin, const T* end) const {
+        return ArrayView<const T>(*this).slice(begin, end);
+    }
+    /** @overload */
+    ArrayView<T> slice(std::size_t begin, std::size_t end) {
+        return slice(_data + begin, _data + end);
+    }
+    /** @overload */
+    ArrayView<const T> slice(std::size_t begin, std::size_t end) const {
+        return slice(_data + begin, _data + end);
+    }
 
-        /**
+    /**
          * @brief Fixed-size array slice
          *
          * Both @cpp begin @ce and @cpp begin + viewSize @ce are expected to be
          * in range.
          */
-        template<std::size_t viewSize> StaticArrayView<viewSize, T> slice(T* begin) {
-            return ArrayView<T>(*this).template slice<viewSize>(begin);
-        }
-        /** @overload */
-        template<std::size_t viewSize> StaticArrayView<viewSize, const T> slice(const T* begin) const {
-            return ArrayView<const T>(*this).template slice<viewSize>(begin);
-        }
-        /** @overload */
-        template<std::size_t viewSize> StaticArrayView<viewSize, T> slice(std::size_t begin) {
-            return slice<viewSize>(_data + begin);
-        }
-        /** @overload */
-        template<std::size_t viewSize> StaticArrayView<viewSize, const T> slice(std::size_t begin) const {
-            return slice<viewSize>(_data + begin);
-        }
+    template<std::size_t viewSize>
+    StaticArrayView<viewSize, T> slice(T* begin) {
+        return ArrayView<T>(*this).template slice<viewSize>(begin);
+    }
+    /** @overload */
+    template<std::size_t viewSize>
+    StaticArrayView<viewSize, const T> slice(const T* begin) const {
+        return ArrayView<const T>(*this).template slice<viewSize>(begin);
+    }
+    /** @overload */
+    template<std::size_t viewSize>
+    StaticArrayView<viewSize, T> slice(std::size_t begin) {
+        return slice<viewSize>(_data + begin);
+    }
+    /** @overload */
+    template<std::size_t viewSize>
+    StaticArrayView<viewSize, const T> slice(std::size_t begin) const {
+        return slice<viewSize>(_data + begin);
+    }
 
-        /**
+    /**
          * @brief Array prefix
          *
          * Equivalent to @ref ArrayView::prefix().
          */
-        ArrayView<T> prefix(T* end) {
-            return ArrayView<T>(*this).prefix(end);
-        }
-        /** @overload */
-        ArrayView<const T> prefix(const T* end) const {
-            return ArrayView<const T>(*this).prefix(end);
-        }
-        ArrayView<T> prefix(std::size_t end) { return prefix(_data + end); } /**< @overload */
-        ArrayView<const T> prefix(std::size_t end) const { return prefix(_data + end); } /**< @overload */
+    ArrayView<T> prefix(T* end) {
+        return ArrayView<T>(*this).prefix(end);
+    }
+    /** @overload */
+    ArrayView<const T> prefix(const T* end) const {
+        return ArrayView<const T>(*this).prefix(end);
+    }
+    ArrayView<T> prefix(std::size_t end) { return prefix(_data + end); } /**< @overload */
+    ArrayView<const T> prefix(std::size_t end) const { return prefix(_data + end); } /**< @overload */
 
-        /**
+    /**
          * @brief Array suffix
          *
          * Equivalent to @ref ArrayView::suffix().
          */
-        ArrayView<T> suffix(T* begin) {
-            return ArrayView<T>(*this).suffix(begin);
-        }
-        /** @overload */
-        ArrayView<const T> suffix(const T* begin) const {
-            return ArrayView<const T>(*this).suffix(begin);
-        }
-        ArrayView<T> suffix(std::size_t begin) { return suffix(_data + begin); } /**< @overload */
-        ArrayView<const T> suffix(std::size_t begin) const { return suffix(_data + begin); } /**< @overload */
+    ArrayView<T> suffix(T* begin) {
+        return ArrayView<T>(*this).suffix(begin);
+    }
+    /** @overload */
+    ArrayView<const T> suffix(const T* begin) const {
+        return ArrayView<const T>(*this).suffix(begin);
+    }
+    ArrayView<T> suffix(std::size_t begin) { return suffix(_data + begin); } /**< @overload */
+    ArrayView<const T> suffix(std::size_t begin) const { return suffix(_data + begin); } /**< @overload */
 
     private:
-        explicit StaticArray(DefaultInitT, std::true_type) {}
-        /* GCC 5.3 is not able to initialize non-movable types inside
+    explicit StaticArray(DefaultInitT, std::true_type) {}
+/* GCC 5.3 is not able to initialize non-movable types inside
            constructor initializer list. Reported here:
            https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70395 */
-        #if !defined(__GNUC__) || defined(__clang__)
-        explicit StaticArray(DefaultInitT, std::false_type): _data{} {}
-        #else
-        explicit StaticArray(DefaultInitT, std::false_type) {
-            for(T& i: _data) new(&i) T{};
-        }
-        #endif
+#if !defined(__GNUC__) || defined(__clang__)
+    explicit StaticArray(DefaultInitT, std::false_type) : _data{} {}
+#else
+    explicit StaticArray(DefaultInitT, std::false_type) {
+        for(T& i : _data) new(&i) T{};
+    }
+#endif
 
-        union {
-            T _data[size_];
-        };
+    union {
+        T _data[size_];
+    };
 };
 
 /** @relatesalso StaticArray
@@ -438,7 +451,8 @@ Containers::ArrayView<std::uint32_t> a{data};
 auto b = Containers::arrayView(data);
 @endcode
 */
-template<std::size_t size, class T> constexpr ArrayView<T> arrayView(StaticArray<size, T>& array) {
+template<std::size_t size, class T>
+constexpr ArrayView<T> arrayView(StaticArray<size, T>& array) {
     return ArrayView<T>{array};
 }
 
@@ -455,7 +469,8 @@ Containers::ArrayView<const std::uint32_t> a{data};
 auto b = Containers::arrayView(data);
 @endcode
 */
-template<std::size_t size, class T> constexpr ArrayView<const T> arrayView(const StaticArray<size, T>& array) {
+template<std::size_t size, class T>
+constexpr ArrayView<const T> arrayView(const StaticArray<size, T>& array) {
     return ArrayView<const T>{array};
 }
 
@@ -474,7 +489,8 @@ auto b = Containers::staticArrayView(data);
 
 @todoc Make it a real reference once Doxygen is sane
 */
-template<std::size_t size, class T> constexpr StaticArrayView<size, T> staticArrayView(StaticArray<size, T>& array) {
+template<std::size_t size, class T>
+constexpr StaticArrayView<size, T> staticArrayView(StaticArray<size, T>& array) {
     return StaticArrayView<size, T>{array};
 }
 
@@ -493,7 +509,8 @@ auto b = Containers::staticArrayView(data);
 
 @todoc Make it a real reference once Doxygen is sane
 */
-template<std::size_t size, class T> constexpr StaticArrayView<size, const T> staticArrayView(const StaticArray<size, T>& array) {
+template<std::size_t size, class T>
+constexpr StaticArrayView<size, const T> staticArrayView(const StaticArray<size, T>& array) {
     return StaticArrayView<size, const T>{array};
 }
 
@@ -502,12 +519,14 @@ template<std::size_t size, class T> constexpr StaticArrayView<size, const T> sta
 
 See @ref arrayCast(StaticArrayView<size, T>) for more information.
 */
-template<class U, std::size_t size, class T> StaticArrayView<size*sizeof(T)/sizeof(U), U> arrayCast(StaticArray<size, T>& array) {
+template<class U, std::size_t size, class T>
+StaticArrayView<size * sizeof(T) / sizeof(U), U> arrayCast(StaticArray<size, T>& array) {
     return arrayCast<U>(staticArrayView(array));
 }
 
 /** @overload */
-template<class U, std::size_t size, class T> StaticArrayView<size*sizeof(T)/sizeof(U), const U> arrayCast(const StaticArray<size, T>& array) {
+template<class U, std::size_t size, class T>
+StaticArrayView<size * sizeof(T) / sizeof(U), const U> arrayCast(const StaticArray<size, T>& array) {
     return arrayCast<const U>(staticArrayView(array));
 }
 
@@ -516,19 +535,23 @@ template<class U, std::size_t size, class T> StaticArrayView<size*sizeof(T)/size
 
 See @ref arraySize(ArrayView<T>) for more information.
 */
-template<std::size_t size_, class T> constexpr std::size_t arraySize(const StaticArray<size_, T>&) {
+template<std::size_t size_, class T>
+constexpr std::size_t arraySize(const StaticArray<size_, T>&) {
     return size_;
 }
 
-template<std::size_t size_, class T> template<class ...Args> StaticArray<size_, T>::StaticArray(DirectInitT, Args&&... args): StaticArray{NoInit} {
-    for(T& i: _data) {
+template<std::size_t size_, class T>
+template<class... Args>
+StaticArray<size_, T>::StaticArray(DirectInitT, Args&&... args) : StaticArray{NoInit} {
+    for(T& i : _data) {
         /* MSVC 2015 needs the braces around */
         new(&i) T{std::forward<Args>(args)...};
     }
 }
 
-template<std::size_t size_, class T> StaticArray<size_, T>::~StaticArray() {
-    for(T& i: _data) i.~T();
+template<std::size_t size_, class T>
+StaticArray<size_, T>::~StaticArray() {
+    for(T& i : _data) i.~T();
 }
 
 }}

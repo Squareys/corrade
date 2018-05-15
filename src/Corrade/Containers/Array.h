@@ -43,30 +43,38 @@
 namespace Corrade { namespace Containers {
 
 namespace Implementation {
-    template<class T> struct DefaultDeleter {
-        T operator()() const { return T{}; }
-    };
-    template<class T> struct DefaultDeleter<void(*)(T*, std::size_t)> {
-        void(*operator()() const)(T*, std::size_t) { return nullptr; }
-    };
+template<class T>
+struct DefaultDeleter {
+    T operator()() const { return T{}; }
+};
+template<class T>
+struct DefaultDeleter<void (*)(T*, std::size_t)> {
+    void (*operator()() const)(T*, std::size_t) { return nullptr; }
+};
 
-    template<class T, class D> struct CallDeleter {
-        void operator()(D deleter, T* data, std::size_t size) const {
-            deleter(data, size);
-        }
-    };
-    template<class T> struct CallDeleter<T, void(*)(T*, std::size_t)> {
-        void operator()(void(*deleter)(T*, std::size_t), T* data, std::size_t size) const {
-            if(deleter) deleter(data, size);
-            else delete[] data;
-        }
-    };
-
-    template<class T> void noInitDeleter(T* data, std::size_t size) {
-        if(data) for(T *it = data, *end = data + size; it != end; ++it)
-            it->~T();
-        delete[] reinterpret_cast<char*>(data);
+template<class T, class D>
+struct CallDeleter {
+    void operator()(D deleter, T* data, std::size_t size) const {
+        deleter(data, size);
     }
+};
+template<class T>
+struct CallDeleter<T, void (*)(T*, std::size_t)> {
+    void operator()(void (*deleter)(T*, std::size_t), T* data, std::size_t size) const {
+        if(deleter)
+            deleter(data, size);
+        else
+            delete[] data;
+    }
+};
+
+template<class T>
+void noInitDeleter(T* data, std::size_t size) {
+    if(data)
+        for(T *it = data, *end = data + size; it != end; ++it)
+            it->~T();
+    delete[] reinterpret_cast<char*>(data);
+}
 }
 
 /**
@@ -184,52 +192,57 @@ Containers::Array<char, UnmapBuffer> array{data, bufferSize, UnmapBuffer{buffer}
     constructed in that? Will that be useful in more than one place?
 */
 #ifdef DOXYGEN_GENERATING_OUTPUT
-template<class T, class D = void(*)(T*, std::size_t)>
+template<class T, class D = void (*)(T*, std::size_t)>
 #else
 template<class T, class D>
 #endif
 class Array {
     public:
-        typedef T Type;     /**< @brief Element type */
-        typedef D Deleter;  /**< @brief Deleter type */
+    typedef T Type; /**< @brief Element type */
+    typedef D Deleter; /**< @brief Deleter type */
 
-        #ifdef CORRADE_BUILD_DEPRECATED
-        /**
+#ifdef CORRADE_BUILD_DEPRECATED
+    /**
          * @brief @copybrief Array(InPlaceInitT, std::initializer_list<T>)
          * @deprecated Use @ref Array(InPlaceInitT, std::initializer_list<T>) instead.
          */
-        template<class ...U> CORRADE_DEPRECATED("use Array(InPlaceInitT, std::initializer_list<T>) instead") static Array<T, D> from(U&&... values) {
-            return Array<T, D>{InPlaceInit, {T(std::forward<U>(values))...}};
-        }
+    template<class... U>
+    CORRADE_DEPRECATED("use Array(InPlaceInitT, std::initializer_list<T>) instead")
+    static Array<T, D> from(U&&... values) {
+        return Array<T, D>{InPlaceInit, {T(std::forward<U>(values))...}};
+    }
 
-        /**
+    /**
          * @brief @copybrief Array(ValueInitT, std::size_t)
          * @deprecated Use @ref Array(ValueInitT, std::size_t) instead.
          */
-        CORRADE_DEPRECATED("use Array(ValueInitT, std::size_t) instead") static Array<T, D> zeroInitialized(std::size_t size) {
-            return Array<T>{ValueInit, size};
-        }
-        #endif
+    CORRADE_DEPRECATED("use Array(ValueInitT, std::size_t) instead")
+    static Array<T, D> zeroInitialized(std::size_t size) {
+        return Array<T>{ValueInit, size};
+    }
+#endif
 
-        /** @brief Conversion from nullptr */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        /*implicit*/ Array(std::nullptr_t) noexcept:
-        #else
-        template<class U, class V = typename std::enable_if<std::is_same<std::nullptr_t, U>::value>::type> /*implicit*/ Array(U) noexcept:
-        #endif
-            /* GCC <=4.8 breaks on _deleter{} */
-            _data{nullptr}, _size{0}, _deleter(Implementation::DefaultDeleter<D>{}()) {}
+/** @brief Conversion from nullptr */
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    /*implicit*/ Array(std::nullptr_t) noexcept :
+#else
+    template<class U, class V = typename std::enable_if<std::is_same<std::nullptr_t, U>::value>::type>
+    /*implicit*/ Array(U) noexcept :
+#endif
+                                                  /* GCC <=4.8 breaks on _deleter{} */
+                                                  _data{nullptr}, _size{0}, _deleter(Implementation::DefaultDeleter<D>{}()) {
+    }
 
-        /**
+    /**
          * @brief Default constructor
          *
          * Creates zero-sized array. Move array with nonzero size onto the
          * instance to make it useful.
          */
-        /* GCC <=4.8 breaks on _deleter{} */
-        /*implicit*/ Array() noexcept: _data(nullptr), _size(0), _deleter(Implementation::DefaultDeleter<D>{}()) {}
+    /* GCC <=4.8 breaks on _deleter{} */
+    /*implicit*/ Array() noexcept : _data(nullptr), _size(0), _deleter(Implementation::DefaultDeleter<D>{}()) {}
 
-        /**
+    /**
          * @brief Construct default-initialized array
          *
          * Creates array of given size, the contents are default-initialized
@@ -237,9 +250,9 @@ class Array {
          * allocation is done.
          * @see @ref DefaultInit, @ref Array(ValueInitT, std::size_t)
          */
-        explicit Array(DefaultInitT, std::size_t size): _data{size ? new T[size] : nullptr}, _size{size}, _deleter{nullptr} {}
+    explicit Array(DefaultInitT, std::size_t size) : _data{size ? new T[size] : nullptr}, _size{size}, _deleter{nullptr} {}
 
-        /**
+    /**
          * @brief Construct value-initialized array
          *
          * Creates array of given size, the contents are value-initialized
@@ -251,9 +264,9 @@ class Array {
          * them to zero.
          * @see @ref ValueInit, @ref Array(DefaultInitT, std::size_t)
          */
-        explicit Array(ValueInitT, std::size_t size): _data{size ? new T[size]() : nullptr}, _size{size}, _deleter{nullptr} {}
+    explicit Array(ValueInitT, std::size_t size) : _data{size ? new T[size]() : nullptr}, _size{size}, _deleter{nullptr} {}
 
-        /**
+    /**
          * @brief Construct the array without initializing its contents
          *
          * Creates array of given size, the contents are *not* initialized. If
@@ -269,86 +282,87 @@ class Array {
          * @see @ref NoInit, @ref Array(DirectInitT, std::size_t, Args&&... args),
          *      @ref deleter()
          */
-        explicit Array(NoInitT, std::size_t size): _data{size ? reinterpret_cast<T*>(new char[size*sizeof(T)]) : nullptr}, _size{size}, _deleter{Implementation::noInitDeleter} {}
+    explicit Array(NoInitT, std::size_t size) : _data{size ? reinterpret_cast<T*>(new char[size * sizeof(T)]) : nullptr}, _size{size}, _deleter{Implementation::noInitDeleter} {}
 
-        /**
+    /**
          * @brief Construct direct-initialized array
          *
          * Allocates the array using the @ref Array(NoInitT, std::size_t)
          * constructor and then initializes each element with placement new
          * using forwarded @p args.
          */
-        template<class... Args> explicit Array(DirectInitT, std::size_t size, Args&&... args);
+    template<class... Args>
+    explicit Array(DirectInitT, std::size_t size, Args&&... args);
 
-        /**
+    /**
          * @brief Construct list-initialized array
          *
          * Allocates the array using the @ref Array(NoInitT, std::size_t)
          * constructor and then copy-initializes each element with placement
          * new using values from @p list.
          */
-        /* There is no initializer-list constructor because it would make
+    /* There is no initializer-list constructor because it would make
            Containers::Array<std::size_t>{5} behave differently (and that would
            break things *badly* as this is a *very* common use-case) */
-        explicit Array(InPlaceInitT, std::initializer_list<T> list);
+    explicit Array(InPlaceInitT, std::initializer_list<T> list);
 
-        /**
+    /**
          * @brief Construct default-initialized array
          *
          * Alias to @ref Array(DefaultInitT, std::size_t).
          * @see @ref Array(ValueInitT, std::size_t)
          */
-        explicit Array(std::size_t size): Array{DefaultInit, size} {}
+    explicit Array(std::size_t size) : Array{DefaultInit, size} {}
 
-        /**
+    /**
          * @brief Wrap existing array
          *
          * Note that the array will be deleted on destruction using given
          * @p deleter. See class documentation for more information about
          * custom deleters and @ref ArrayView for non-owning array wrapper.
          */
-        /* GCC <=4.8 breaks on _deleter{} */
-        explicit Array(T* data, std::size_t size, D deleter = Implementation::DefaultDeleter<D>{}()): _data{data}, _size{size}, _deleter(deleter) {}
+    /* GCC <=4.8 breaks on _deleter{} */
+    explicit Array(T* data, std::size_t size, D deleter = Implementation::DefaultDeleter<D>{}()) : _data{data}, _size{size}, _deleter(deleter) {}
 
-        ~Array() { Implementation::CallDeleter<T, D>{}(_deleter, _data, _size); }
+    ~Array() { Implementation::CallDeleter<T, D>{}(_deleter, _data, _size); }
 
-        /** @brief Copying is not allowed */
-        Array(const Array<T, D>&) = delete;
+    /** @brief Copying is not allowed */
+    Array(const Array<T, D>&) = delete;
 
-        /** @brief Move constructor */
-        Array(Array<T, D>&& other) noexcept;
+    /** @brief Move constructor */
+    Array(Array<T, D>&& other) noexcept;
 
-        /** @brief Copying is not allowed */
-        Array<T, D>& operator=(const Array<T, D>&) = delete;
+    /** @brief Copying is not allowed */
+    Array<T, D>& operator=(const Array<T, D>&) = delete;
 
-        /** @brief Move assignment */
-        Array<T, D>& operator=(Array<T, D>&&) noexcept;
+    /** @brief Move assignment */
+    Array<T, D>& operator=(Array<T, D>&&) noexcept;
 
-        #ifndef CORRADE_MSVC2017_COMPATIBILITY
-        /** @brief Whether the array is non-empty */
-        /* Disabled on MSVC <= 2017 to avoid ambiguous operator+() when doing
+#ifndef CORRADE_MSVC2017_COMPATIBILITY
+    /** @brief Whether the array is non-empty */
+    /* Disabled on MSVC <= 2017 to avoid ambiguous operator+() when doing
            pointer arithmetic. */
-        explicit operator bool() const { return _data; }
-        #endif
+    explicit operator bool() const { return _data; }
+#endif
 
-        /**
+/**
          * @brief Convert to @ref ArrayView
          *
          * Enabled only if @cpp T* @ce is implicitly convertible to @cpp U* @ce.
          * Expects that both types have the same size.
          * @see @ref arrayView(Array<T, D>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class = typename std::enable_if<!std::is_void<U>::value && std::is_convertible<T*, U*>::value>::type>
-        #endif
-        /*implicit*/ operator ArrayView<U>() noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return {_data, _size};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class = typename std::enable_if<!std::is_void<U>::value && std::is_convertible<T*, U*>::value>::type>
+#endif
+    /*implicit*/ operator ArrayView<U>() noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return {_data, _size};
+    }
 
-        /**
+/**
          * @brief Convert to const @ref ArrayView
          *
          * Enabled only if @cpp T* @ce or @cpp const T* @ce is implicitly
@@ -356,154 +370,162 @@ class Array {
          * size.
          * @see @ref arrayView(const Array<T, D>&)
          */
-        #ifdef DOXYGEN_GENERATING_OUTPUT
-        template<class U>
-        #else
-        template<class U, class = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
-        #endif
-        /*implicit*/ operator ArrayView<const U>() const noexcept {
-            static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
-            return {_data, _size};
-        }
+#ifdef DOXYGEN_GENERATING_OUTPUT
+    template<class U>
+#else
+    template<class U, class = typename std::enable_if<std::is_convertible<T*, U*>::value || std::is_convertible<T*, const U*>::value>::type>
+#endif
+    /*implicit*/ operator ArrayView<const U>() const noexcept {
+        static_assert(sizeof(T) == sizeof(U), "type sizes are not compatible");
+        return {_data, _size};
+    }
 
-        /** @overload */
-        /*implicit*/ operator ArrayView<const void>() const noexcept {
-            /* Yes, the size is properly multiplied by sizeof(T) by the constructor */
-            return {_data, _size};
-        }
+    /** @overload */
+    /*implicit*/ operator ArrayView<const void>() const noexcept {
+        /* Yes, the size is properly multiplied by sizeof(T) by the constructor */
+        return {_data, _size};
+    }
 
-        /* `char* a = Containers::Array<char>(5); a[3] = 5;` would result in
+    /* `char* a = Containers::Array<char>(5); a[3] = 5;` would result in
            instant segfault, disallowing it in the following conversion
            operators */
 
-        /** @brief Conversion to array type */
-        /*implicit*/ operator T*()
-        #ifndef CORRADE_GCC47_COMPATIBILITY
+    /** @brief Conversion to array type */
+    /*implicit*/ operator T*()
+#ifndef CORRADE_GCC47_COMPATIBILITY
         &
-        #endif
-        { return _data; }
+#endif
+    {
+        return _data;
+    }
 
-        /** @overload */
-        /*implicit*/ operator const T*() const
-        #ifndef CORRADE_GCC47_COMPATIBILITY
+    /** @overload */
+    /*implicit*/ operator const T*() const
+#ifndef CORRADE_GCC47_COMPATIBILITY
         &
-        #endif
-        { return _data; }
+#endif
+    {
+        return _data;
+    }
 
-        /** @brief Array data */
-        T* data() { return _data; }
-        const T* data() const { return _data; }         /**< @overload */
+    /** @brief Array data */
+    T* data() { return _data; }
+    const T* data() const { return _data; } /**< @overload */
 
-        /**
+    /**
          * @brief Array deleter
          *
          * If set to @cpp nullptr @ce, the contents are deleted using standard
          * @cpp operator delete[] @ce.
          * @see @ref Array(T*, std::size_t, D)
          */
-        D deleter() const { return _deleter; }
+    D deleter() const { return _deleter; }
 
-        /** @brief Array size */
-        std::size_t size() const { return _size; }
+    /** @brief Array size */
+    std::size_t size() const { return _size; }
 
-        /** @brief Whether the array is empty */
-        bool empty() const { return !_size; }
+    /** @brief Whether the array is empty */
+    bool empty() const { return !_size; }
 
-        /** @brief Pointer to first element */
-        T* begin() { return _data; }
-        const T* begin() const { return _data; }        /**< @overload */
-        const T* cbegin() const { return _data; }       /**< @overload */
+    /** @brief Pointer to first element */
+    T* begin() { return _data; }
+    const T* begin() const { return _data; } /**< @overload */
+    const T* cbegin() const { return _data; } /**< @overload */
 
-        /** @brief Pointer to (one item after) last element */
-        T* end() { return _data+_size; }
-        const T* end() const { return _data+_size; }    /**< @overload */
-        const T* cend() const { return _data+_size; }   /**< @overload */
+    /** @brief Pointer to (one item after) last element */
+    T* end() { return _data + _size; }
+    const T* end() const { return _data + _size; } /**< @overload */
+    const T* cend() const { return _data + _size; } /**< @overload */
 
-        /**
+    /**
          * @brief Reference to array slice
          *
          * Equivalent to @ref ArrayView::slice().
          */
-        ArrayView<T> slice(T* begin, T* end) {
-            return ArrayView<T>(*this).slice(begin, end);
-        }
-        /** @overload */
-        ArrayView<const T> slice(const T* begin, const T* end) const {
-            return ArrayView<const T>(*this).slice(begin, end);
-        }
-        /** @overload */
-        ArrayView<T> slice(std::size_t begin, std::size_t end) {
-            return slice(_data + begin, _data + end);
-        }
-        /** @overload */
-        ArrayView<const T> slice(std::size_t begin, std::size_t end) const {
-            return slice(_data + begin, _data + end);
-        }
+    ArrayView<T> slice(T* begin, T* end) {
+        return ArrayView<T>(*this).slice(begin, end);
+    }
+    /** @overload */
+    ArrayView<const T> slice(const T* begin, const T* end) const {
+        return ArrayView<const T>(*this).slice(begin, end);
+    }
+    /** @overload */
+    ArrayView<T> slice(std::size_t begin, std::size_t end) {
+        return slice(_data + begin, _data + end);
+    }
+    /** @overload */
+    ArrayView<const T> slice(std::size_t begin, std::size_t end) const {
+        return slice(_data + begin, _data + end);
+    }
 
-        /**
+    /**
          * @brief Fixed-size array slice
          *
          * Both @cpp begin @ce and @cpp begin + size @ce are expected to be in
          * range.
          */
-        template<std::size_t size> StaticArrayView<size, T> slice(T* begin) {
-            return ArrayView<T>(*this).template slice<size>(begin);
-        }
-        /** @overload */
-        template<std::size_t size> StaticArrayView<size, const T> slice(const T* begin) const {
-            return ArrayView<const T>(*this).template slice<size>(begin);
-        }
-        /** @overload */
-        template<std::size_t size> StaticArrayView<size, T> slice(std::size_t begin) {
-            return slice<size>(_data + begin);
-        }
-        /** @overload */
-        template<std::size_t size> StaticArrayView<size, const T> slice(std::size_t begin) const {
-            return slice<size>(_data + begin);
-        }
+    template<std::size_t size>
+    StaticArrayView<size, T> slice(T* begin) {
+        return ArrayView<T>(*this).template slice<size>(begin);
+    }
+    /** @overload */
+    template<std::size_t size>
+    StaticArrayView<size, const T> slice(const T* begin) const {
+        return ArrayView<const T>(*this).template slice<size>(begin);
+    }
+    /** @overload */
+    template<std::size_t size>
+    StaticArrayView<size, T> slice(std::size_t begin) {
+        return slice<size>(_data + begin);
+    }
+    /** @overload */
+    template<std::size_t size>
+    StaticArrayView<size, const T> slice(std::size_t begin) const {
+        return slice<size>(_data + begin);
+    }
 
-        /**
+    /**
          * @brief Array prefix
          *
          * Equivalent to @ref ArrayView::prefix().
          */
-        ArrayView<T> prefix(T* end) {
-            return ArrayView<T>(*this).prefix(end);
-        }
-        /** @overload */
-        ArrayView<const T> prefix(const T* end) const {
-            return ArrayView<const T>(*this).prefix(end);
-        }
-        ArrayView<T> prefix(std::size_t end) { return prefix(_data + end); } /**< @overload */
-        ArrayView<const T> prefix(std::size_t end) const { return prefix(_data + end); } /**< @overload */
+    ArrayView<T> prefix(T* end) {
+        return ArrayView<T>(*this).prefix(end);
+    }
+    /** @overload */
+    ArrayView<const T> prefix(const T* end) const {
+        return ArrayView<const T>(*this).prefix(end);
+    }
+    ArrayView<T> prefix(std::size_t end) { return prefix(_data + end); } /**< @overload */
+    ArrayView<const T> prefix(std::size_t end) const { return prefix(_data + end); } /**< @overload */
 
-        /**
+    /**
          * @brief Array suffix
          *
          * Equivalent to @ref ArrayView::suffix().
          */
-        ArrayView<T> suffix(T* begin) {
-            return ArrayView<T>(*this).suffix(begin);
-        }
-        /** @overload */
-        ArrayView<const T> suffix(const T* begin) const {
-            return ArrayView<const T>(*this).suffix(begin);
-        }
-        ArrayView<T> suffix(std::size_t begin) { return suffix(_data + begin); } /**< @overload */
-        ArrayView<const T> suffix(std::size_t begin) const { return suffix(_data + begin); } /**< @overload */
+    ArrayView<T> suffix(T* begin) {
+        return ArrayView<T>(*this).suffix(begin);
+    }
+    /** @overload */
+    ArrayView<const T> suffix(const T* begin) const {
+        return ArrayView<const T>(*this).suffix(begin);
+    }
+    ArrayView<T> suffix(std::size_t begin) { return suffix(_data + begin); } /**< @overload */
+    ArrayView<const T> suffix(std::size_t begin) const { return suffix(_data + begin); } /**< @overload */
 
-        /**
+    /**
          * @brief Release data storage
          *
          * Returns the data pointer and resets internal state to default.
          * Deleting the returned array is user responsibility.
          */
-        T* release();
+    T* release();
 
     private:
-        T* _data;
-        std::size_t _size;
-        D _deleter;
+    T* _data;
+    std::size_t _size;
+    D _deleter;
 };
 
 /** @relatesalso ArrayView
@@ -519,7 +541,8 @@ Containers::ArrayView<std::uint32_t> a{data};
 auto b = Containers::arrayView(data);
 @endcode
 */
-template<class T, class D> inline ArrayView<T> arrayView(Array<T, D>& array) {
+template<class T, class D>
+inline ArrayView<T> arrayView(Array<T, D>& array) {
     return ArrayView<T>{array};
 }
 
@@ -536,7 +559,8 @@ Containers::ArrayView<const std::uint32_t> a{data};
 auto b = Containers::arrayView(data);
 @endcode
 */
-template<class T, class D> inline ArrayView<const T> arrayView(const Array<T, D>& array) {
+template<class T, class D>
+inline ArrayView<const T> arrayView(const Array<T, D>& array) {
     return ArrayView<const T>{array};
 }
 
@@ -545,12 +569,14 @@ template<class T, class D> inline ArrayView<const T> arrayView(const Array<T, D>
 
 See @ref arrayCast(ArrayView<T>) for more information.
 */
-template<class U, class T, class D> inline ArrayView<U> arrayCast(Array<T, D>& array) {
+template<class U, class T, class D>
+inline ArrayView<U> arrayCast(Array<T, D>& array) {
     return arrayCast<U>(arrayView(array));
 }
 
 /** @overload */
-template<class U, class T, class D> inline ArrayView<const U> arrayCast(const Array<T, D>& array) {
+template<class U, class T, class D>
+inline ArrayView<const U> arrayCast(const Array<T, D>& array) {
     return arrayCast<const U>(arrayView(array));
 }
 
@@ -559,7 +585,8 @@ template<class U, class T, class D> inline ArrayView<const U> arrayCast(const Ar
 
 See @ref arraySize(ArrayView<T>) for more information.
 */
-template<class T> std::size_t arraySize(const Array<T>& view) {
+template<class T>
+std::size_t arraySize(const Array<T>& view) {
     return view.size();
 }
 
@@ -568,26 +595,32 @@ template<class T> std::size_t arraySize(const Array<T>& view) {
  * @deprecated Use @ref ArrayView.h and @ref ArrayView instead.
  */
 #ifndef CORRADE_MSVC2015_COMPATIBILITY /* Multiple definitions still broken */
-template<class T> using ArrayReference CORRADE_DEPRECATED_ALIAS("use ArrayView.h and ArrayView instead") = ArrayView<T>;
+template<class T>
+using ArrayReference CORRADE_DEPRECATED_ALIAS("use ArrayView.h and ArrayView instead") = ArrayView<T>;
 #endif
 #endif
 
-template<class T, class D> inline Array<T, D>::Array(Array<T, D>&& other) noexcept: _data{other._data}, _size{other._size}, _deleter{other._deleter} {
+template<class T, class D>
+inline Array<T, D>::Array(Array<T, D>&& other) noexcept : _data{other._data}, _size{other._size}, _deleter{other._deleter} {
     other._data = nullptr;
     other._size = 0;
 }
 
-template<class T, class D> template<class ...Args> Array<T, D>::Array(DirectInitT, std::size_t size, Args&&... args): Array{NoInit, size} {
+template<class T, class D>
+template<class... Args>
+Array<T, D>::Array(DirectInitT, std::size_t size, Args&&... args) : Array{NoInit, size} {
     for(std::size_t i = 0; i != size; ++i)
         new(_data + i) T{std::forward<Args>(args)...};
 }
 
-template<class T, class D> Array<T, D>::Array(InPlaceInitT, std::initializer_list<T> list): Array{NoInit, list.size()} {
+template<class T, class D>
+Array<T, D>::Array(InPlaceInitT, std::initializer_list<T> list) : Array{NoInit, list.size()} {
     std::size_t i = 0;
-    for(const T& item: list) new(_data + i++) T{item};
+    for(const T& item : list) new(_data + i++) T{item};
 }
 
-template<class T, class D> inline Array<T, D>& Array<T, D>::operator=(Array<T, D>&& other) noexcept {
+template<class T, class D>
+inline Array<T, D>& Array<T, D>::operator=(Array<T, D>&& other) noexcept {
     using std::swap;
     swap(_data, other._data);
     swap(_size, other._size);
@@ -595,7 +628,8 @@ template<class T, class D> inline Array<T, D>& Array<T, D>::operator=(Array<T, D
     return *this;
 }
 
-template<class T, class D> inline T* Array<T, D>::release() {
+template<class T, class D>
+inline T* Array<T, D>::release() {
     /** @todo I need `std::exchange` NOW. */
     T* const data = _data;
     _data = nullptr;

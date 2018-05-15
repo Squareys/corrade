@@ -30,7 +30,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct StaticArrayViewTest: TestSuite::Tester {
+struct StaticArrayViewTest : TestSuite::Tester {
     explicit StaticArrayViewTest();
 
     void constructDefault();
@@ -57,8 +57,10 @@ struct StaticArrayViewTest: TestSuite::Tester {
 
 typedef Containers::ArrayView<int> ArrayView;
 typedef Containers::ArrayView<const int> ConstArrayView;
-template<std::size_t size> using StaticArrayView = Containers::StaticArrayView<size, int>;
-template<std::size_t size> using ConstStaticArrayView = Containers::StaticArrayView<size, const int>;
+template<std::size_t size>
+using StaticArrayView = Containers::StaticArrayView<size, int>;
+template<std::size_t size>
+using ConstStaticArrayView = Containers::StaticArrayView<size, const int>;
 typedef Containers::ArrayView<const void> VoidArrayView;
 
 StaticArrayViewTest::StaticArrayViewTest() {
@@ -103,7 +105,8 @@ void StaticArrayViewTest::construct() {
     {
         const StaticArrayView<5> b{a};
         CORRADE_VERIFY(b == a);
-    } {
+    }
+    {
         const auto b = staticArrayView<5>(a);
         CORRADE_VERIFY((std::is_same<decltype(b), const StaticArrayView<5>>::value));
         CORRADE_VERIFY(b == a);
@@ -119,7 +122,8 @@ void StaticArrayViewTest::constructFixedSize() {
     {
         const StaticArrayView<13> b = a;
         CORRADE_VERIFY(b == a);
-    } {
+    }
+    {
         const auto b = staticArrayView(a);
         CORRADE_VERIFY((std::is_same<decltype(b), const StaticArrayView<13>>::value));
         CORRADE_VERIFY(b == a);
@@ -127,8 +131,10 @@ void StaticArrayViewTest::constructFixedSize() {
 }
 
 void StaticArrayViewTest::constructDerived() {
-    struct A { int i; };
-    struct B: A {};
+    struct A {
+        int i;
+    };
+    struct B : A {};
 
     /* See ArrayViewTest for comments */
 
@@ -148,7 +154,8 @@ void StaticArrayViewTest::constructConst() {
     {
         ConstStaticArrayView<6> b = a;
         CORRADE_COMPARE(b[2], 7);
-    } {
+    }
+    {
         const auto b = staticArrayView(a);
         CORRADE_VERIFY((std::is_same<decltype(b), const ConstStaticArrayView<6>>::value));
         CORRADE_COMPARE(b[2], 7);
@@ -197,8 +204,8 @@ void StaticArrayViewTest::convertVoid() {
     VoidArrayView cc = cb;
     CORRADE_VERIFY(c == b);
     CORRADE_VERIFY(cc == cb);
-    CORRADE_COMPARE(c.size(), 6*sizeof(int));
-    CORRADE_COMPARE(cc.size(), 6*sizeof(int));
+    CORRADE_COMPARE(c.size(), 6 * sizeof(int));
+    CORRADE_COMPARE(cc.size(), 6 * sizeof(int));
 }
 
 void StaticArrayViewTest::access() {
@@ -208,9 +215,9 @@ void StaticArrayViewTest::access() {
         b[i] = i;
 
     CORRADE_VERIFY(b.data() == a);
-    CORRADE_COMPARE(*(b.begin()+2), 2);
+    CORRADE_COMPARE(*(b.begin() + 2), 2);
     CORRADE_COMPARE(b[4], 4);
-    CORRADE_COMPARE(b.end()-b.begin(), 7);
+    CORRADE_COMPARE(b.end() - b.begin(), 7);
     CORRADE_COMPARE(b.cbegin(), b.begin());
     CORRADE_COMPARE(b.cend(), b.end());
 
@@ -221,7 +228,7 @@ void StaticArrayViewTest::access() {
 void StaticArrayViewTest::rangeBasedFor() {
     int a[5];
     StaticArrayView<5> b = a;
-    for(auto& i: b)
+    for(auto& i : b)
         i = 3;
 
     CORRADE_COMPARE(b[0], 3);

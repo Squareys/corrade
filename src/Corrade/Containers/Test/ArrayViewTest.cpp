@@ -30,7 +30,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct ArrayViewTest: TestSuite::Tester {
+struct ArrayViewTest : TestSuite::Tester {
     explicit ArrayViewTest();
 
     void constructEmpty();
@@ -122,7 +122,8 @@ void ArrayViewTest::construct() {
         const ArrayView b = {a, 20};
         CORRADE_VERIFY(b == a);
         CORRADE_COMPARE(b.size(), 20);
-    } {
+    }
+    {
         const auto b = arrayView(a, 20);
         CORRADE_VERIFY((std::is_same<decltype(b), const ArrayView>::value));
         CORRADE_VERIFY(b == a);
@@ -137,7 +138,8 @@ void ArrayViewTest::constructFixedSize() {
         const ArrayView b = a;
         CORRADE_VERIFY(b == a);
         CORRADE_COMPARE(b.size(), 13);
-    } {
+    }
+    {
         const auto b = arrayView(a);
         CORRADE_VERIFY((std::is_same<decltype(b), const ArrayView>::value));
         CORRADE_VERIFY(b == a);
@@ -146,8 +148,10 @@ void ArrayViewTest::constructFixedSize() {
 }
 
 void ArrayViewTest::constructDerived() {
-    struct A { int i; };
-    struct B: A {};
+    struct A {
+        int i;
+    };
+    struct B : A {};
 
     /* Valid use case: constructing Containers::ArrayView<Math::Vector<3, Float>>
        from Containers::ArrayView<Color3> because the data have the same size
@@ -172,7 +176,8 @@ void ArrayViewTest::constructConst() {
         ConstArrayView b = a;
         CORRADE_COMPARE(b.size(), 6);
         CORRADE_COMPARE(b[2], 7);
-    } {
+    }
+    {
         ConstArrayView b = a;
         CORRADE_VERIFY((std::is_same<decltype(b), ConstArrayView>::value));
         CORRADE_COMPARE(b.size(), 6);
@@ -239,12 +244,12 @@ void ArrayViewTest::convertVoid() {
     VoidArrayView b = a;
     CORRADE_VERIFY(b == a);
     CORRADE_VERIFY(b.data() == a);
-    CORRADE_COMPARE(b.size(), 6*sizeof(int));
+    CORRADE_COMPARE(b.size(), 6 * sizeof(int));
 
     /* void reference to runtime array */
     VoidArrayView c = {a, 6};
     CORRADE_VERIFY(c == a);
-    CORRADE_COMPARE(c.size(), 6*sizeof(int));
+    CORRADE_COMPARE(c.size(), 6 * sizeof(int));
 
     /* void reference to ArrayView */
     ArrayView f = a;
@@ -253,8 +258,8 @@ void ArrayViewTest::convertVoid() {
     VoidArrayView cg = cf;
     CORRADE_VERIFY(g == f);
     CORRADE_VERIFY(cg == cf);
-    CORRADE_COMPARE(g.size(), f.size()*sizeof(int));
-    CORRADE_COMPARE(cg.size(), cf.size()*sizeof(int));
+    CORRADE_COMPARE(g.size(), f.size() * sizeof(int));
+    CORRADE_COMPARE(cg.size(), cf.size() * sizeof(int));
 }
 
 void ArrayViewTest::emptyCheck() {
@@ -275,9 +280,9 @@ void ArrayViewTest::access() {
         b[i] = i;
 
     CORRADE_VERIFY(b.data() == a);
-    CORRADE_COMPARE(*(b.begin()+2), 2);
+    CORRADE_COMPARE(*(b.begin() + 2), 2);
     CORRADE_COMPARE(b[4], 4);
-    CORRADE_COMPARE(b.end()-b.begin(), b.size());
+    CORRADE_COMPARE(b.end() - b.begin(), b.size());
     CORRADE_COMPARE(b.cbegin(), b.begin());
     CORRADE_COMPARE(b.cend(), b.end());
 
@@ -288,7 +293,7 @@ void ArrayViewTest::access() {
 void ArrayViewTest::rangeBasedFor() {
     int a[5];
     ArrayView b = a;
-    for(auto& i: b)
+    for(auto& i : b)
         i = 3;
 
     CORRADE_COMPARE(b[0], 3);
@@ -311,10 +316,10 @@ void ArrayViewTest::sliceInvalid() {
     a.slice<5>(1);
 
     CORRADE_COMPARE(out.str(),
-        "Containers::ArrayView::slice(): slice [-1:0] out of range for 5 elements\n"
-        "Containers::ArrayView::slice(): slice [5:6] out of range for 5 elements\n"
-        "Containers::ArrayView::slice(): slice [2:1] out of range for 5 elements\n"
-        "Containers::ArrayView::slice(): slice [1:6] out of range for 5 elements\n");
+                    "Containers::ArrayView::slice(): slice [-1:0] out of range for 5 elements\n"
+                    "Containers::ArrayView::slice(): slice [5:6] out of range for 5 elements\n"
+                    "Containers::ArrayView::slice(): slice [2:1] out of range for 5 elements\n"
+                    "Containers::ArrayView::slice(): slice [1:6] out of range for 5 elements\n");
 }
 
 void ArrayViewTest::sliceNullptr() {

@@ -28,7 +28,7 @@
 
 namespace Corrade { namespace Containers { namespace Test {
 
-struct StaticArrayTest: TestSuite::Tester {
+struct StaticArrayTest : TestSuite::Tester {
     explicit StaticArrayTest();
 
     void construct();
@@ -142,15 +142,15 @@ void StaticArrayTest::constructValueInit() {
 }
 
 namespace {
-    struct Foo {
-        static int constructorCallCount;
-        static int destructorCallCount;
-        Foo() { ++constructorCallCount; }
-        ~Foo() { ++destructorCallCount; }
-    };
+struct Foo {
+    static int constructorCallCount;
+    static int destructorCallCount;
+    Foo() { ++constructorCallCount; }
+    ~Foo() { ++destructorCallCount; }
+};
 
-    int Foo::constructorCallCount = 0;
-    int Foo::destructorCallCount = 0;
+int Foo::constructorCallCount = 0;
+int Foo::destructorCallCount = 0;
 }
 
 void StaticArrayTest::constructNoInit() {
@@ -194,7 +194,7 @@ void StaticArrayTest::constructNonCopyable() {
 
 void StaticArrayTest::constructNoImplicitConstructor() {
     struct NoImplicitConstructor {
-        NoImplicitConstructor(int i): i{i} {}
+        NoImplicitConstructor(int i) : i{i} {}
 
         int i;
     };
@@ -256,9 +256,9 @@ void StaticArrayTest::convertPointer() {
     CORRADE_VERIFY((std::is_convertible<StaticArray&, int*>::value));
     CORRADE_VERIFY((std::is_convertible<const StaticArray&, const int*>::value));
     {
-        #ifdef CORRADE_GCC47_COMPATIBILITY
+#ifdef CORRADE_GCC47_COMPATIBILITY
         CORRADE_EXPECT_FAIL("Rvalue references for *this are not supported in GCC < 4.8.1.");
-        #endif
+#endif
         CORRADE_VERIFY(!(std::is_convertible<StaticArray, int*>::value));
         CORRADE_VERIFY(!(std::is_convertible<StaticArray&&, int*>::value));
     }
@@ -293,7 +293,8 @@ void StaticArrayTest::convertView() {
         CORRADE_COMPARE(cb.size(), 5);
         CORRADE_COMPARE(bc.size(), 5);
         CORRADE_COMPARE(cbc.size(), 5);
-    } {
+    }
+    {
         const auto b = arrayView(a);
         const auto cb = arrayView(ca);
         const auto bc = arrayView(ac);
@@ -314,8 +315,10 @@ void StaticArrayTest::convertView() {
 }
 
 void StaticArrayTest::convertViewDerived() {
-    struct A { int i; };
-    struct B: A {};
+    struct A {
+        int i;
+    };
+    struct B : A {};
 
     /* Valid use case: constructing Containers::ArrayView<Math::Vector<3, Float>>
        from Containers::ArrayView<Color3> because the data have the same size
@@ -347,7 +350,8 @@ void StaticArrayTest::convertStaticView() {
         CORRADE_COMPARE(cb.size(), 5);
         CORRADE_COMPARE(bc.size(), 5);
         CORRADE_COMPARE(cbc.size(), 5);
-    } {
+    }
+    {
         const auto b = staticArrayView(a);
         const auto cb = staticArrayView(ca);
         const auto bc = staticArrayView(ac);
@@ -368,8 +372,10 @@ void StaticArrayTest::convertStaticView() {
 }
 
 void StaticArrayTest::convertStaticViewDerived() {
-    struct A { int i; };
-    struct B: A {};
+    struct A {
+        int i;
+    };
+    struct B : A {};
 
     /* Valid use case: constructing Containers::ArrayView<Math::Vector<3, Float>>
        from Containers::ArrayView<Color3> because the data have the same size
@@ -390,8 +396,8 @@ void StaticArrayTest::convertVoid() {
     VoidArrayView cb = ca;
     CORRADE_VERIFY(b == a);
     CORRADE_VERIFY(cb == ca);
-    CORRADE_COMPARE(b.size(), 5*sizeof(int));
-    CORRADE_COMPARE(cb.size(), 5*sizeof(int));
+    CORRADE_COMPARE(b.size(), 5 * sizeof(int));
+    CORRADE_COMPARE(cb.size(), 5 * sizeof(int));
 }
 
 void StaticArrayTest::access() {
@@ -400,9 +406,9 @@ void StaticArrayTest::access() {
         a[i] = i;
 
     CORRADE_COMPARE(a.data(), static_cast<int*>(a));
-    CORRADE_COMPARE(*(a.begin()+2), 2);
+    CORRADE_COMPARE(*(a.begin() + 2), 2);
     CORRADE_COMPARE(a[4], 4);
-    CORRADE_COMPARE(a.end()-a.begin(), 5);
+    CORRADE_COMPARE(a.end() - a.begin(), 5);
     CORRADE_COMPARE(a.cbegin(), a.begin());
     CORRADE_COMPARE(a.cend(), a.end());
 }
@@ -413,7 +419,7 @@ void StaticArrayTest::rvalueArrayAccess() {
 
 void StaticArrayTest::rangeBasedFor() {
     StaticArray a;
-    for(auto& i: a)
+    for(auto& i : a)
         i = 3;
 
     CORRADE_COMPARE(a[0], 3);
@@ -424,7 +430,7 @@ void StaticArrayTest::rangeBasedFor() {
 
     /* To verify the constant begin()/end() accessors */
     const StaticArray& ca = a;
-    for(auto&& i: ca)
+    for(auto&& i : ca)
         CORRADE_COMPARE(i, 3);
 }
 
@@ -505,7 +511,7 @@ void StaticArrayTest::cast() {
     CORRADE_VERIFY((std::is_same<decltype(cb), Containers::StaticArrayView<3, const std::uint64_t>>::value));
     CORRADE_VERIFY((std::is_same<decltype(cbc), Containers::StaticArrayView<3, const std::uint64_t>>::value));
 
-    CORRADE_VERIFY((std::is_same<decltype(d), Containers::StaticArrayView<12,  std::uint16_t>>::value));
+    CORRADE_VERIFY((std::is_same<decltype(d), Containers::StaticArrayView<12, std::uint16_t>>::value));
     CORRADE_VERIFY((std::is_same<decltype(cd), Containers::StaticArrayView<12, const std::uint16_t>>::value));
     CORRADE_VERIFY((std::is_same<decltype(dc), Containers::StaticArrayView<12, const std::uint16_t>>::value));
     CORRADE_VERIFY((std::is_same<decltype(cdc), Containers::StaticArrayView<12, const std::uint16_t>>::value));

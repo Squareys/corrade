@@ -116,108 +116,108 @@ class EnumSet {
     static_assert(std::is_enum<T>::value, "EnumSet type must be strongly typed enum");
 
     public:
-        typedef T Type; /**< @brief Enum type */
+    typedef T Type; /**< @brief Enum type */
 
-        /** @brief Underlying type of the enum */
-        typedef typename std::underlying_type<T>::type UnderlyingType;
+    /** @brief Underlying type of the enum */
+    typedef typename std::underlying_type<T>::type UnderlyingType;
 
-        enum: UnderlyingType {
-            FullValue = fullValue /**< All enum values together */
-        };
+    enum : UnderlyingType {
+        FullValue = fullValue /**< All enum values together */
+    };
 
-        /** @brief Create empty set */
-        constexpr /*implicit*/ EnumSet(): value() {}
+    /** @brief Create empty set */
+    constexpr /*implicit*/ EnumSet() : value() {}
 
-        /** @brief Create set from one value */
-        constexpr /*implicit*/ EnumSet(T value): value(static_cast<UnderlyingType>(value)) {}
+    /** @brief Create set from one value */
+    constexpr /*implicit*/ EnumSet(T value) : value(static_cast<UnderlyingType>(value)) {}
 
-        /**
+    /**
          * @brief Create uninitialized set
          *
          * The contents are left in undefined state.
          */
-        explicit EnumSet(NoInitT) {}
+    explicit EnumSet(NoInitT) {}
 
-        /** @brief Equality operator */
-        constexpr bool operator==(EnumSet<T, fullValue> other) const {
-            return value == other.value;
-        }
+    /** @brief Equality operator */
+    constexpr bool operator==(EnumSet<T, fullValue> other) const {
+        return value == other.value;
+    }
 
-        /** @brief Non-equality operator */
-        constexpr bool operator!=(EnumSet<T, fullValue> other) const {
-            return !operator==(other);
-        }
+    /** @brief Non-equality operator */
+    constexpr bool operator!=(EnumSet<T, fullValue> other) const {
+        return !operator==(other);
+    }
 
-        /**
+    /**
          * @brief Whether @p other is subset of this
          *
          * Equivalent to @cpp (a & other) == other @ce.
          */
-        constexpr bool operator>=(EnumSet<T, fullValue> other) const {
-            return (*this & other) == other;
-        }
+    constexpr bool operator>=(EnumSet<T, fullValue> other) const {
+        return (*this & other) == other;
+    }
 
-        /**
+    /**
          * @brief Whether @p other is superset of this
          *
          * Equivalent to @cpp (a & other) == a @ce.
          */
-        constexpr bool operator<=(EnumSet<T, fullValue> other) const {
-            return (*this & other) == *this;
-        }
+    constexpr bool operator<=(EnumSet<T, fullValue> other) const {
+        return (*this & other) == *this;
+    }
 
-        /** @brief Union of two sets */
-        constexpr EnumSet<T, fullValue> operator|(EnumSet<T, fullValue> other) const {
-            return EnumSet<T, fullValue>(value | other.value);
-        }
+    /** @brief Union of two sets */
+    constexpr EnumSet<T, fullValue> operator|(EnumSet<T, fullValue> other) const {
+        return EnumSet<T, fullValue>(value | other.value);
+    }
 
-        /** @brief Union two sets and assign */
-        EnumSet<T, fullValue>& operator|=(EnumSet<T, fullValue> other) {
-            value |= other.value;
-            return *this;
-        }
+    /** @brief Union two sets and assign */
+    EnumSet<T, fullValue>& operator|=(EnumSet<T, fullValue> other) {
+        value |= other.value;
+        return *this;
+    }
 
-        /** @brief Intersection of two sets */
-        constexpr EnumSet<T, fullValue> operator&(EnumSet<T, fullValue> other) const {
-            return EnumSet<T, fullValue>(value & other.value);
-        }
+    /** @brief Intersection of two sets */
+    constexpr EnumSet<T, fullValue> operator&(EnumSet<T, fullValue> other) const {
+        return EnumSet<T, fullValue>(value & other.value);
+    }
 
-        /** @brief Intersect two sets and assign */
-        EnumSet<T, fullValue>& operator&=(EnumSet<T, fullValue> other) {
-            value &= other.value;
-            return *this;
-        }
+    /** @brief Intersect two sets and assign */
+    EnumSet<T, fullValue>& operator&=(EnumSet<T, fullValue> other) {
+        value &= other.value;
+        return *this;
+    }
 
-        /** @brief XOR of two sets */
-        constexpr EnumSet<T, fullValue> operator^(EnumSet<T, fullValue> other) const {
-            return EnumSet<T, fullValue>(value ^ other.value);
-        }
+    /** @brief XOR of two sets */
+    constexpr EnumSet<T, fullValue> operator^(EnumSet<T, fullValue> other) const {
+        return EnumSet<T, fullValue>(value ^ other.value);
+    }
 
-        /** @brief XOR two sets and assign */
-        EnumSet<T, fullValue>& operator^=(EnumSet<T, fullValue> other) {
-            value ^= other.value;
-            return *this;
-        }
+    /** @brief XOR two sets and assign */
+    EnumSet<T, fullValue>& operator^=(EnumSet<T, fullValue> other) {
+        value ^= other.value;
+        return *this;
+    }
 
-        /** @brief Set complement */
-        constexpr EnumSet<T, fullValue> operator~() const {
-            return EnumSet<T, fullValue>(fullValue & ~value);
-        }
+    /** @brief Set complement */
+    constexpr EnumSet<T, fullValue> operator~() const {
+        return EnumSet<T, fullValue>(fullValue & ~value);
+    }
 
-        /** @brief Value as boolean */
-        constexpr explicit operator bool() const {
-            return value != 0;
-        }
+    /** @brief Value as boolean */
+    constexpr explicit operator bool() const {
+        return value != 0;
+    }
 
-        /** @brief Value in underlying type */
-        constexpr explicit operator UnderlyingType() const {
-            return value;
-        }
+    /** @brief Value in underlying type */
+    constexpr explicit operator UnderlyingType() const {
+        return value;
+    }
 
     private:
-        constexpr explicit EnumSet(UnderlyingType type): value(type) {}
+    constexpr explicit EnumSet(UnderlyingType type) : value(type) {}
 
-        UnderlyingType value;
+    UnderlyingType value;
 };
 
 /** @hideinitializer
@@ -226,30 +226,30 @@ class EnumSet {
 See @ref EnumSet-out-of-class-operators "EnumSet documentation" for example
 usage.
 */
-#define CORRADE_ENUMSET_OPERATORS(class)                                    \
-    constexpr bool operator==(class::Type a, class b) {                     \
-        return class(a) == b;                                               \
-    }                                                                       \
-    constexpr bool operator!=(class::Type a, class b) {                     \
-        return class(a) != b;                                               \
-    }                                                                       \
-    constexpr bool operator>=(class::Type a, class b) {                     \
-        return class(a) >= b;                                               \
-    }                                                                       \
-    constexpr bool operator<=(class::Type a, class b) {                     \
-        return class(a) <= b;                                               \
-    }                                                                       \
-    constexpr class operator|(class::Type a, class b) {                     \
-        return b | a;                                                       \
-    }                                                                       \
-    constexpr class operator&(class::Type a, class b) {                     \
-        return b & a;                                                       \
-    }                                                                       \
-    constexpr class operator^(class::Type a, class b) {                     \
-        return b ^ a;                                                       \
-    }                                                                       \
-    constexpr class operator~(class::Type a) {                              \
-        return ~class(a);                                                   \
+#define CORRADE_ENUMSET_OPERATORS(class) \
+    constexpr bool operator==(class ::Type a, class b) { \
+        return class(a) == b; \
+    } \
+    constexpr bool operator!=(class ::Type a, class b) { \
+        return class(a) != b; \
+    } \
+    constexpr bool operator>=(class ::Type a, class b) { \
+        return class(a) >= b; \
+    } \
+    constexpr bool operator<=(class ::Type a, class b) { \
+        return class(a) <= b; \
+    } \
+    constexpr class operator|(class ::Type a, class b) { \
+        return b | a; \
+    } \
+    constexpr class operator&(class ::Type a, class b) { \
+        return b & a; \
+    } \
+    constexpr class operator^(class ::Type a, class b) { \
+        return b ^ a; \
+    } \
+    constexpr class operator~(class ::Type a) { \
+        return ~class(a); \
     }
 
 /** @hideinitializer
@@ -257,15 +257,15 @@ usage.
 
 See @ref EnumSet-friend-operators "EnumSet documentation" for example usage.
 */
-#define CORRADE_ENUMSET_FRIEND_OPERATORS(class)                             \
-    friend constexpr bool operator==(class::Type, class);                   \
-    friend constexpr bool operator!=(class::Type, class);                   \
-    friend constexpr bool operator>=(class::Type, class);                   \
-    friend constexpr bool operator<=(class::Type, class);                   \
-    friend constexpr class operator&(class::Type, class);                   \
-    friend constexpr class operator|(class::Type, class);                   \
-    friend constexpr class operator^(class::Type, class);                   \
-    friend constexpr class operator~(class::Type);
+#define CORRADE_ENUMSET_FRIEND_OPERATORS(class) \
+    friend constexpr bool operator==(class ::Type, class); \
+    friend constexpr bool operator!=(class ::Type, class); \
+    friend constexpr bool operator>=(class ::Type, class); \
+    friend constexpr bool operator<=(class ::Type, class); \
+    friend constexpr class operator&(class ::Type, class); \
+    friend constexpr class operator|(class ::Type, class); \
+    friend constexpr class operator^(class ::Type, class); \
+    friend constexpr class operator~(class ::Type);
 
 }}
 

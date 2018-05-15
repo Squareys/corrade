@@ -38,19 +38,28 @@
 
 namespace Corrade { namespace Containers {
 
-template<class T, class = void(*)(T*, std::size_t)> class Array;
-template<class> class ArrayView;
+template<class T, class = void (*)(T*, std::size_t)>
+class Array;
+template<class>
+class ArrayView;
 #ifdef CORRADE_BUILD_DEPRECATED
-template<class T> using ArrayReference CORRADE_DEPRECATED_ALIAS("use ArrayView.h and ArrayView instead") = ArrayView<T>;
+template<class T>
+using ArrayReference CORRADE_DEPRECATED_ALIAS("use ArrayView.h and ArrayView instead") = ArrayView<T>;
 #endif
-template<std::size_t, class> class StaticArrayView;
-template<std::size_t, class> class StaticArray;
+template<std::size_t, class>
+class StaticArrayView;
+template<std::size_t, class>
+class StaticArray;
 
-template<class T, typename std::underlying_type<T>::type fullValue = typename std::underlying_type<T>::type(~0)> class EnumSet;
-template<class> class LinkedList;
-template<class Derived, class List = LinkedList<Derived>> class LinkedListItem;
+template<class T, typename std::underlying_type<T>::type fullValue = typename std::underlying_type<T>::type(~0)>
+class EnumSet;
+template<class>
+class LinkedList;
+template<class Derived, class List = LinkedList<Derived>>
+class LinkedListItem;
 
-template<class T> class Optional;
+template<class T>
+class Optional;
 
 }}
 
